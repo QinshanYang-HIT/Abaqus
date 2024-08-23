@@ -28,7 +28,13 @@ rt_output_re = rt_output.transpose(1, 2, 0)
 # 提取各组时程数据最大值，即11个支座各个方向最大节点反力
 max_index = np.abs(rt_output_re).argmax(axis=2)
 max_values = np.take_along_axis(rt_output_re, max_index[:, :, np.newaxis], axis=2)
-max_values_2d = np.squeeze(max_values)
+max_values_re = max_values.copy()
+
+indices_to_modify = [(4, 0, 0), (5, 0, 0)]
+for idx in indices_to_modify:
+    max_values_re[idx] -= rt_output_re[idx]
+
+max_values_2d = np.squeeze(max_values_re)
 
 # 保存CSV文件至工作路径
 file_name = "max_values.csv"

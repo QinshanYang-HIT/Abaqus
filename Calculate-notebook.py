@@ -11,7 +11,6 @@ from abaqus import *
 from driverUtils import *
 from odbAccess import *
 
-
 executeOnCaeStartup()
 
 
@@ -201,7 +200,7 @@ model = mdb.models[model_name]
 
 # 获取加速度时程 TXT 文件夹路径
 '''根据自定义加速度时程文件路径定义'''
-txt_folder = 'E:\\ABAQUS\\Time'
+txt_folder = 'C:\\APPData\\ABAQUS\\Time'
 txt_files = [os.path.join(txt_folder, f) for f in os.listdir(txt_folder) if f.endswith('.txt')]
 
 # 设置调幅峰值加速度
@@ -249,17 +248,18 @@ with open('record.txt', 'a') as file:
             # 创建新的作业名称
             job_name = '{}_{}'.format(file_name, key)
             '''根据自定义子程序文件、临时文件、CPU数量、GPU数量等进行定义'''
-            mdb.Job(name=job_name, model=model_name, userSubroutine='E:\\ABAQUS\\Subroutine\\STEEL-UMAT.for',
-                    scratch='E:\\ABAQUS\\Temp', numCpus=5, numDomains=5, numGPUs=1)
+            mdb.Job(name=job_name, model=model_name, scratch='C:\\APPData\\ABAQUS\\Temp',
+                    numCpus=3, numDomains=3, numGPUs=0)
             mdb.jobs[job_name].submit(consistencyChecking=OFF)
             mdb.jobs[job_name].waitForCompletion()
 
             '''根据自定义输出文件路径定义'''
             Analyzer = OdbAnalyzer(odb_filename='{}.odb'.format(job_name),
-                                   output_dir='E:\\ABAQUS\\Output')
+                                   output_dir='C:\\APPData\\ABAQUS\\Output')
             D = Analyzer.analyze()
 
             file.write('{}: D={}\n'.format(key, D))
+            file.flush()
 
             if D == 0.0:
                 Intact += 1
