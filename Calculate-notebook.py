@@ -219,6 +219,7 @@ with open('record.txt', 'a') as file:
         file.write('---------------------------------------------------\n')
         file.write('{}\n'.format(file_name))
         file.write('---------------------------------------------------\n')
+        file.flush()
 
         # 读取 TXT 文件的数据
         data = np.loadtxt(txt_file)
@@ -272,3 +273,4 @@ with open('record.txt', 'a') as file:
                 break
 
         file.write('完好: {}; 轻微损坏: {}; 中等损坏: {}\n'.format(Intact, Slight, Medium))
+        file.flush()
