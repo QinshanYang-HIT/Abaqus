@@ -206,12 +206,12 @@ txt_folder = 'E:\\ABAQUS\\Time'
 txt_files = [os.path.join(txt_folder, f) for f in os.listdir(txt_folder) if f.endswith('.txt')]
 
 # 设置调幅峰值加速度
-PGA = OrderedDict([('150E-3g', '1.4715'),
-                   ('300E-3g', '2.943'),
-                   ('500E-3g', '4.905'),
-                   ('700E-3g', '6.867'),
-                   ('850E-3g', '8.3385'),
-                   ('1000E-3g', '9.81')])
+PGA = OrderedDict([('150', '1.4715'),
+                   ('300', '2.943'),
+                   ('500', '4.905'),
+                   ('700', '6.867'),
+                   ('850', '8.3385'),
+                   ('1000', '9.81')])
 
 with open('record.txt', 'a') as file:
     # 循环处理每个 TXT 文件
@@ -236,10 +236,10 @@ with open('record.txt', 'a') as file:
         # step.setValues(timePeriod=total_time)
 
         # 创建表类型的幅值，以amplitude_name命名，时间/频率列用time_data填充，幅值用accel_data填充。
-        amplitude_name = 'Amp_{}'.format(file_name)
+        amplitude_name = '{}'.format(file_name)
         model.TabularAmplitude(name=amplitude_name, data=zip(time_data, accel_data))
 
-        Intact, Slight, Medium = 0, 0, 0
+        Intact, Slight, Medium, Serious = 0, 0, 0, 0
 
         for key, value in PGA.items():
             # 修改边界条件的幅值曲线
@@ -261,18 +261,20 @@ with open('record.txt', 'a') as file:
                                    output_dir='E:\\ABAQUS\\Output')
             D = Analyzer.analyze()
 
-            file.write('{}: D={}\n'.format(key, D))
+            file.write('{}E-3g: D={}\n'.format(key, D))
             file.flush()
 
             if D == 0.0:
                 Intact += 1
-            if 0.3 >= D > 0.0:
+            elif 0.3 >= D > 0.0:
                 Slight += 1
-            if 0.7 >= D > 0.3:
+            elif 0.7 >= D > 0.3:
                 Medium += 1
-            if D > 0.7:
-                print('模型已在峰值加速度到达{}时，出现严重损坏，{}调幅已停止'.format(key, file_name))
+            elif 1.0 > D > 0.7:
+                Serious += 1
+            elif D >= 1:
+                print('模型已在峰值加速度到达{}时，出现倒塌，{}调幅已停止'.format(key, file_name))
                 break
 
-        file.write('完好: {}; 轻微损坏: {}; 中等损坏: {}\n'.format(Intact, Slight, Medium))
+        file.write('完好: {}; 轻微损坏: {}; 中等损坏: {}; 严重损坏: {}\n'.format(Intact, Slight, Medium, Serious))
         file.flush()

@@ -237,7 +237,7 @@ with open('record.txt', 'a') as file:
         amplitude_name = 'Amp_{}'.format(file_name)
         model.TabularAmplitude(name=amplitude_name, data=zip(time_data, accel_data))
 
-        Intact, Slight, Medium = 0, 0, 0
+        Intact, Slight, Medium, Serious = 0, 0, 0, 0
 
         for key, value in PGA.items():
             # 修改边界条件的幅值曲线
@@ -264,13 +264,15 @@ with open('record.txt', 'a') as file:
 
             if D == 0.0:
                 Intact += 1
-            if 0.3 >= D > 0.0:
+            elif 0.3 >= D > 0.0:
                 Slight += 1
-            if 0.7 >= D > 0.3:
+            elif 0.7 >= D > 0.3:
                 Medium += 1
-            if D > 0.7:
-                print('模型已在峰值加速度到达{}时，出现严重损坏，{}调幅已停止'.format(key, file_name))
+            elif 1.0 > D > 0.7:
+                Serious += 1
+            elif D >= 1:
+                print('模型已在峰值加速度到达{}时，出现倒塌，{}调幅已停止'.format(key, file_name))
                 break
 
-        file.write('完好: {}; 轻微损坏: {}; 中等损坏: {}\n'.format(Intact, Slight, Medium))
+        file.write('完好: {}; 轻微损坏: {}; 中等损坏: {}; 严重损坏: {}\n'.format(Intact, Slight, Medium, Serious))
         file.flush()
