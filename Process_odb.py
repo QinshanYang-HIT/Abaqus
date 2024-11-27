@@ -5,11 +5,7 @@
 import os
 import numpy as np
 import math
-import csv
-from collections import OrderedDict
 
-from abaqus import *
-from driverUtils import *
 from odbAccess import *
 
 
@@ -197,19 +193,21 @@ folder_path = 'E:\\ABAQUS\\ODB\\Data'
 with open('Result\\record_add.txt', 'a') as txt_file:
     for item in os.listdir(folder_path):
         item_path = os.path.join(folder_path, item)
-        Intact, Slight, Medium = 0, 0, 0
-        for odb_file in os.listdir(item_path):
-            txt_file.write('---------------------------------------------------\n')
-            txt_file.write('{}\n'.format(item))
-            txt_file.write('---------------------------------------------------\n')
-            txt_file.flush()
+        Intact, Slight, Medium, Serious = 0, 0, 0, 0
 
+        txt_file.write('---------------------------------------------------\n')
+        txt_file.write('{}\n'.format(item))
+        txt_file.write('---------------------------------------------------\n')
+        txt_file.flush()
+
+        for odb_file in os.listdir(item_path):
             odb_file_path = os.path.join(item_path, odb_file)
             Analyzer = OdbAnalyzer(odb_filename='{}'.format(odb_file_path), output_dir='E:\\ABAQUS\\Output')
             D = Analyzer.analyze()
 
-            job_name = os.path.splitext(odb_file)[0]
-            txt_file.write('{}: D={}\n'.format(job_name, D))
+            odb_name = os.path.splitext(odb_file)[0]
+            acce_mark = odb_name.rsplit('_', 1)[-1]
+            txt_file.write('{}: D={}\n'.format(acce_mark, D))
             txt_file.flush()
 
             if D == 0.0:
@@ -218,8 +216,10 @@ with open('Result\\record_add.txt', 'a') as txt_file:
                 Slight += 1
             elif 0.7 >= D > 0.3:
                 Medium += 1
-            elif D > 0.7:
+            elif 1.0 > D > 0.7:
+                Serious += 1
+            elif D >= 1:
                 break
 
-        txt_file.write('完好: {}; 轻微损坏: {}; 中等损坏: {}\n'.format(Intact, Slight, Medium))
+        txt_file.write('完好: {}; 轻微损坏: {}; 中等损坏: {}; 严重损坏: {}\n'.format(Intact, Slight, Medium, Serious))
         txt_file.flush()
