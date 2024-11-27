@@ -67,7 +67,8 @@ def calculate_damage_factor(epsilon_a, epsilon_u, disp_m, disp_e, rise, span, ra
 
 
 def save_demand_data(output_data, odb_filename, output_dir):
-    save_path = os.path.join(output_dir, '{}.txt'.format(odb_filename))
+    base_filename = os.path.splitext(odb_filename)[0]
+    save_path = os.path.join(output_dir, '{}.txt'.format(base_filename))
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
     np.savetxt(save_path, output_data, fmt='%.10f')
@@ -154,8 +155,10 @@ with open(d_values_csv, 'a') as d_file, open(damage_states_csv, 'a') as state_fi
     d_writer = csv.writer(d_file)
     state_writer = csv.writer(state_file)
 
-    d_writer.writerow(['File_Name', 'D_Value'])
-    state_writer.writerow(['File_Name', 'Intact', 'Slight', 'Medium', 'Serious', 'Collapse'])
+    if os.stat(d_values_csv).st_size == 0:
+        d_writer.writerow(['File_Name', 'D_Value'])
+    if os.stat(damage_states_csv).st_size == 0:
+        state_writer.writerow(['File_Name', 'Intact', 'Slight', 'Medium', 'Serious', 'Collapse'])
 
     for txt_file in txt_files:
         file_name = os.path.splitext(os.path.basename(txt_file))[0]
@@ -208,6 +211,9 @@ with open(d_values_csv, 'a') as d_file, open(damage_states_csv, 'a') as state_fi
 
             d_writer.writerow(['{}_{}'.format(file_name, key), damage_factor])
 
+            d_file.flush()
+            os.fsync(d_file.fileno())
+
             if damage_factor == 0.0:
                 Intact += 1
             elif 0.3 >= damage_factor > 0.0:
@@ -220,3 +226,5 @@ with open(d_values_csv, 'a') as d_file, open(damage_states_csv, 'a') as state_fi
                 Collapse += 1
 
         state_writer.writerow([file_name, Intact, Slight, Medium, Serious, Collapse])
+        state_file.flush()
+        os.fsync(state_file.fileno())
